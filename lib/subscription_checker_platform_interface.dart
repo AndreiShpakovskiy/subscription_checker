@@ -6,8 +6,7 @@ abstract class SubscriptionCheckerPlatform extends PlatformInterface {
   SubscriptionCheckerPlatform() : super(token: _token);
 
   static final Object _token = Object();
-  static SubscriptionCheckerPlatform _instance =
-      MethodChannelSubscriptionChecker();
+  static SubscriptionCheckerPlatform _instance = MethodChannelSubscriptionChecker();
 
   static SubscriptionCheckerPlatform get instance => _instance;
 
@@ -16,7 +15,7 @@ abstract class SubscriptionCheckerPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<String?> checkSubscription() {
-    throw UnimplementedError('platformVersion() has not been implemented.');
+  Future<String?> checkSubscription({required List<String> subscriptionId}) {
+    throw UnimplementedError('checkSubscription() has not been implemented.');
   }
 }

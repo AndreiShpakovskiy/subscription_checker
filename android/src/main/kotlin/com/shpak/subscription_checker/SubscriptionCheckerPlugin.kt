@@ -2,16 +2,13 @@ package com.shpak.subscription_checker
 
 import android.content.Context
 import android.util.Log
-import androidx.annotation.NonNull
-
+import com.android.billingclient.api.*
+import com.android.billingclient.api.BillingClient.BillingResponseCode
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-
-import com.android.billingclient.api.*
-import com.android.billingclient.api.BillingClient.BillingResponseCode
 
 class SubscriptionCheckerPlugin : FlutterPlugin, MethodCallHandler {
     companion object {
@@ -22,7 +19,7 @@ class SubscriptionCheckerPlugin : FlutterPlugin, MethodCallHandler {
     private lateinit var billingClient: BillingClient
     private lateinit var context: Context
 
-    override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+    override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         context = flutterPluginBinding.applicationContext
 
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "subscription_checker")
@@ -30,14 +27,14 @@ class SubscriptionCheckerPlugin : FlutterPlugin, MethodCallHandler {
 
         billingClient = BillingClient.newBuilder(context)
             .enablePendingPurchases()
-            .setListener(PurchasesUpdatedListener { billingResult, purchases ->
-                Log.d(TAG, "Purcheses update: result $billingResult, purchases $purchases")
-            })
+            .setListener { billingResult, purchases ->
+                Log.d(TAG, "Purcheses update. Result: $billingResult; Purchases $purchases")
+            }
             .build()
 
         billingClient.startConnection(object : BillingClientStateListener {
             override fun onBillingSetupFinished(billingResult: BillingResult) {
-                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                if (billingResult.responseCode == BillingResponseCode.OK) {
                     Log.d(TAG, "The BillingClient is ready")
                 }
             }
@@ -53,6 +50,9 @@ class SubscriptionCheckerPlugin : FlutterPlugin, MethodCallHandler {
 
     override fun onMethodCall(call: MethodCall, result: Result) {
         if (call.method == "checkSubscription") {
+
+            Log.d(TAG, "Args: ${call.arguments}")
+
 //            billingClient.queryPurchaseHistoryAsync(BillingClient.ProductType.SUBS) { responseCode, purchasesList ->
 //                Log.d(
 //                    "TAG123",
@@ -76,7 +76,7 @@ class SubscriptionCheckerPlugin : FlutterPlugin, MethodCallHandler {
                 if (billingResult.responseCode == BillingResponseCode.OK) {
                     Log.d(
                         TAG,
-                        "QueryPurchasesResponse: ${purchases.first().purchaseTime}; ${billingResult.debugMessage}"
+                        "QueryPurchasesResponse: $purchases"
                     )
                 } else {
                     result.error(
@@ -87,7 +87,25 @@ class SubscriptionCheckerPlugin : FlutterPlugin, MethodCallHandler {
                 }
             }
 
-            // result.success("Not implemented yet")
+            val queryPurchaseHistoryParams = QueryPurchaseHistoryParams
+                .newBuilder()
+                .setProductType(BillingClient.ProductType.SUBS)
+                .build()
+
+            billingClient.queryPurchaseHistoryAsync(
+                queryPurchaseHistoryParams
+            ) { billingResult: BillingResult,
+                purchaseHistory: MutableList<PurchaseHistoryRecord>? ->
+
+                Log.d(TAG, "Result: $billingResult; History: $purchaseHistory")
+
+//                purchaseHistory?.forEach {
+//                    Log.d(
+//                        TAG,
+//                        "QueryPurchasesResponseHistory: $it"
+//                    )
+//                }
+            }
         } else {
             result.notImplemented()
         }
