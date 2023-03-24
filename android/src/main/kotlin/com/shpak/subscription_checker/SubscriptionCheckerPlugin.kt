@@ -1,9 +1,9 @@
 package com.shpak.subscription_checker
 
-import android.content.Context
 import android.util.Log
-import com.android.billingclient.api.*
-import com.android.billingclient.api.BillingClient.BillingResponseCode
+import com.shpak.subscription_checker.billing.BillingClientWrapper
+import com.shpak.subscription_checker.billing.SubscriptionCheckListener
+import com.shpak.subscription_checker.model.CheckResult
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -16,96 +16,32 @@ class SubscriptionCheckerPlugin : FlutterPlugin, MethodCallHandler {
     }
 
     private lateinit var channel: MethodChannel
-    private lateinit var billingClient: BillingClient
-    private lateinit var context: Context
+    private lateinit var billingClientWrapper: BillingClientWrapper
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        context = flutterPluginBinding.applicationContext
-
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "subscription_checker")
         channel.setMethodCallHandler(this)
 
-        billingClient = BillingClient.newBuilder(context)
-            .enablePendingPurchases()
-            .setListener { billingResult, purchases ->
-                Log.d(TAG, "Purcheses update. Result: $billingResult; Purchases $purchases")
-            }
-            .build()
-
-        billingClient.startConnection(object : BillingClientStateListener {
-            override fun onBillingSetupFinished(billingResult: BillingResult) {
-                if (billingResult.responseCode == BillingResponseCode.OK) {
-                    Log.d(TAG, "The BillingClient is ready")
-                }
-            }
-
-            override fun onBillingServiceDisconnected() {
-                Log.e(
-                    TAG, "The BillingClient is disconnected, "
-                            + "ensure your device supports Google Play Services"
-                )
-            }
-        })
+        billingClientWrapper = BillingClientWrapper(flutterPluginBinding.applicationContext)
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
         if (call.method == "checkSubscription") {
 
-            Log.d(TAG, "Args: ${call.arguments}")
+            val args = call.arguments as Map<*, *>
+            val subscriptionId = (args["subscriptionId"] as List<*>).map { it as String }
 
-//            billingClient.queryPurchaseHistoryAsync(BillingClient.ProductType.SUBS) { responseCode, purchasesList ->
-//                Log.d(
-//                    "TAG123",
-//                    ">>> Full purchase history: $responseCode, $purchasesList"
-//                )
-//            }
+            billingClientWrapper.checkSubscription(
+                subscriptionId,
+                object : SubscriptionCheckListener {
+                    override fun onCheckResult(result: CheckResult) {
+                        Log.d(TAG, "Result: $result")
+                    }
 
-//                        val params = QueryPurchasesParams.newBuilder()
-//                            .setProductType(ProductType.SUBS)
-//
-//                        val purchasesResult = billingClient.queryPurchasesAsync(params.build())
-
-            val queryPurchasesParams = QueryPurchasesParams
-                .newBuilder()
-                .setProductType(BillingClient.ProductType.SUBS)
-                .build()
-
-            billingClient.queryPurchasesAsync(queryPurchasesParams) { billingResult: BillingResult,
-                                                                      purchases: MutableList<Purchase> ->
-
-                if (billingResult.responseCode == BillingResponseCode.OK) {
-                    Log.d(
-                        TAG,
-                        "QueryPurchasesResponse: $purchases"
-                    )
-                } else {
-                    result.error(
-                        "$billingResult",
-                        "Error while quering purchases",
-                        billingResult.debugMessage
-                    )
-                }
-            }
-
-            val queryPurchaseHistoryParams = QueryPurchaseHistoryParams
-                .newBuilder()
-                .setProductType(BillingClient.ProductType.SUBS)
-                .build()
-
-            billingClient.queryPurchaseHistoryAsync(
-                queryPurchaseHistoryParams
-            ) { billingResult: BillingResult,
-                purchaseHistory: MutableList<PurchaseHistoryRecord>? ->
-
-                Log.d(TAG, "Result: $billingResult; History: $purchaseHistory")
-
-//                purchaseHistory?.forEach {
-//                    Log.d(
-//                        TAG,
-//                        "QueryPurchasesResponseHistory: $it"
-//                    )
-//                }
-            }
+                    override fun onError(message: String) {
+                        Log.e(TAG, "Error: $message")
+                    }
+                })
         } else {
             result.notImplemented()
         }
