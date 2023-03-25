@@ -51,13 +51,18 @@ class BillingClientWrapper(context: Context) {
     }
 
     fun checkSubscription(subscriptionId: List<String>, checkListener: SubscriptionCheckListener) {
+        if (!isInitialized) {
+            checkListener.onError("Billing client is not initialized")
+            return
+        }
+
         billingClient.queryPurchasesAsync(querySubPurchasesParams) { billingResult: BillingResult,
                                                                      purchases: MutableList<Purchase> ->
 
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                val subscription = purchases.find { subscriptionId.containsAll(it.products) }
+                val subscriptionOrNull = purchases.find { subscriptionId.containsAll(it.products) }
 
-                if (subscription == null) {
+                if (subscriptionOrNull == null) {
                     findPurchaseInHistory(subscriptionId) { isFound ->
                         checkListener.onCheckResult(
                             CheckResult(
@@ -69,7 +74,7 @@ class BillingClientWrapper(context: Context) {
                     checkListener.onCheckResult(
                         CheckResult(
                             subscriptionStatus = SubscriptionStatus.ACTIVE,
-                            purchaseTimeMillis = subscription.purchaseTime
+                            purchaseTimeMillis = subscriptionOrNull.purchaseTime
                         )
                     )
                 }
@@ -87,15 +92,16 @@ class BillingClientWrapper(context: Context) {
             querySubPurchaseHistoryParams
         ) { _: BillingResult,
             purchaseHistory: MutableList<PurchaseHistoryRecord>? ->
-
             if (purchaseHistory == null) {
                 isFound(false)
                 return@queryPurchaseHistoryAsync
             }
 
-            val subscription = purchaseHistory.find { subscriptionId.containsAll(it.products) }
+            val purchaseRecordOrNull = purchaseHistory.find {
+                subscriptionId.containsAll(it.products)
+            }
 
-            isFound(subscription != null)
+            isFound(purchaseRecordOrNull != null)
         }
     }
 }

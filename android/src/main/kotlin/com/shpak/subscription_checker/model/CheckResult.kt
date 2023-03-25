@@ -6,7 +6,7 @@ data class CheckResult(
 ) {
     val asMap: Map<String, Any?>
         get() = mapOf(
-            "subscriptionStatus" to subscriptionStatus,
+            "subscriptionStatus" to subscriptionStatus.status,
             "purchaseTimeMillis" to purchaseTimeMillis
         )
 }

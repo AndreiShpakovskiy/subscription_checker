@@ -34,12 +34,12 @@ class SubscriptionCheckerPlugin : FlutterPlugin, MethodCallHandler {
             billingClientWrapper.checkSubscription(
                 subscriptionId,
                 object : SubscriptionCheckListener {
-                    override fun onCheckResult(result: CheckResult) {
-                        Log.d(TAG, "Result: $result")
+                    override fun onCheckResult(checkResult: CheckResult) {
+                        result.success(checkResult.asMap)
                     }
 
                     override fun onError(message: String) {
-                        Log.e(TAG, "Error: $message")
+                        result.error("PURCHASE_QUERY_ERROR", message, null)
                     }
                 })
         } else {
