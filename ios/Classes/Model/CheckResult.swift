@@ -9,7 +9,7 @@ struct CheckResult {
 
     var asMap: [String: AnyObject] {
         return [
-            "subscriptionStatus": subscriptionStatus as AnyObject,
+            "subscriptionStatus": subscriptionStatus.rawValue as AnyObject,
             "purchaseTimeMillis": purchaseTimeMillis as AnyObject
         ]
     }

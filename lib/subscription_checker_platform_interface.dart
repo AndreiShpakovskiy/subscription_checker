@@ -17,6 +17,12 @@ abstract class SubscriptionCheckerPlatform extends PlatformInterface {
     _instance = instance;
   }
 
+  Future<void> setSharedSecret({
+    required String sharedSecret,
+  }) {
+    throw UnimplementedError('setSharedSecret() has not been implemented.');
+  }
+
   Future<CheckResult> checkSubscription({
     required List<String> subscriptionId,
   }) {
