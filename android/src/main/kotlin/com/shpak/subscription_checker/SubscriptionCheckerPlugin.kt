@@ -1,6 +1,5 @@
 package com.shpak.subscription_checker
 
-import android.util.Log
 import com.shpak.subscription_checker.billing.BillingClientWrapper
 import com.shpak.subscription_checker.billing.SubscriptionCheckListener
 import com.shpak.subscription_checker.model.CheckResult

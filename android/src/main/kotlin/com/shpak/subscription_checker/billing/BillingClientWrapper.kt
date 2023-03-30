@@ -59,9 +59,7 @@ class BillingClientWrapper(context: Context) {
         billingClient.queryPurchasesAsync(querySubPurchasesParams) { billingResult: BillingResult,
                                                                      purchases: MutableList<Purchase> ->
 
-            Log.d(TAG, "All purchases: $purchases")
-
-            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+            if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
                 val subscriptionOrNull = purchases.find { subscriptionId.containsAll(it.products) }
 
                 if (subscriptionOrNull == null) {
@@ -102,8 +100,6 @@ class BillingClientWrapper(context: Context) {
             val purchaseRecordOrNull = purchaseHistory.find {
                 subscriptionId.containsAll(it.products)
             }
-
-            Log.d(TAG, "All purchases history: $purchaseHistory")
 
             isFound(purchaseRecordOrNull != null)
         }
