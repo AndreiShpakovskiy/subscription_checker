@@ -45,7 +45,7 @@ class SubscriptionChecker {
             let lastPurchase = storeResponse.latestReceiptInfo?.filter { receipt in
                 subscriptionId.contains(where: { subId in subId == receipt.productID})
             }.sorted {
-                $0.purchaseDateMS < $1.purchaseDateMS
+                $0.purchaseDateMS > $1.purchaseDateMS
             }.first
             
             if let lastPurchase = lastPurchase {
