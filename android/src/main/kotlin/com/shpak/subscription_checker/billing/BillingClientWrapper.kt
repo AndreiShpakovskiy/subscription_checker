@@ -59,7 +59,7 @@ class BillingClientWrapper(context: Context) {
         billingClient.queryPurchasesAsync(querySubPurchasesParams) { billingResult: BillingResult,
                                                                      purchases: MutableList<Purchase> ->
 
-            if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                 val subscriptionOrNull = purchases.find { subscriptionId.containsAll(it.products) }
 
                 if (subscriptionOrNull == null) {
