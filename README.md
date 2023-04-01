@@ -10,7 +10,7 @@ To initialize ```SubscriptionChecker``` on iOS you need to provide app-specific 
 
 ```dart
 final SubscriptionChecker subscriptionChecker = SubscriptionChecker()
-    ..setSharedSecret(PolyglotSettings.iosSharedSecret);
+    ..setSharedSecret("12ab90709c0a9798d9799e923545bb42");
     
 final result = await subscriptionChecker.checkSubscription(subscriptionId: ["subscription_id"]);
 ```
